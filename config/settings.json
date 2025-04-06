@@ -1,0 +1,24 @@
+{
+  "api_provider": "OpenAI",
+  "model": "gpt-3.5-turbo",
+  "temperature": 0.7,
+  "max_tokens": 1000,
+  "ui": {
+    "theme": "light",
+    "code_font_size": 14,
+    "show_line_numbers": true
+  },
+  "features": {
+    "code_generation": true,
+    "code_translation": true,
+    "code_explanation": true,
+    "template_library": true
+  },
+  "defaults": {
+    "programming_language": "Python",
+    "code_type": "Function",
+    "include_comments": true,
+    "error_handling": true,
+    "code_style": "Standard"
+  }
+}
