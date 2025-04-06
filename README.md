@@ -77,11 +77,13 @@ streamlit run simple_app.py
 
 The application will open in your browser at `http://localhost:8501`
 
+![1743905112416](image/README/1743905112416.png)
+
 ## 🧠 Using the Application
 
 1. **Configure API Key**: Use the "User Account Setup" section in the sidebar to configure your OpenAI API key (if not set in .env)
 2. **Select Settings**: Choose the AI model, temperature, and token limit
-3. **Generate Code**: 
+3. **Generate Code**:
    - Select your programming language
    - Choose the type of code you want to generate
    - Describe what you want the code to do
