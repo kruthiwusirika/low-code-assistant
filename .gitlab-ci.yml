@@ -1,0 +1,88 @@
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  DOCKER_REGISTRY: ${CI_REGISTRY}
+  DOCKER_IMAGE_NAME: ${CI_REGISTRY_IMAGE}/low-code-assistant
+  KUBERNETES_NAMESPACE: low-code-assistant
+
+# Cache dependencies between jobs
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .pip-cache/
+
+# Run tests
+test:
+  stage: test
+  image: python:3.9-slim
+  before_script:
+    - pip install --cache-dir=.pip-cache -r requirements.txt
+  script:
+    - python -m pytest tests/ -v
+  tags:
+    - kubernetes
+
+# Build Docker image and push to registry
+build:
+  stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - export IMAGE_TAG=${CI_COMMIT_SHA:0:8}
+    - docker build -t ${DOCKER_IMAGE_NAME}:${IMAGE_TAG} -t ${DOCKER_IMAGE_NAME}:latest .
+    - docker push ${DOCKER_IMAGE_NAME}:${IMAGE_TAG}
+    - docker push ${DOCKER_IMAGE_NAME}:latest
+    - echo "IMAGE_TAG=${IMAGE_TAG}" >> build.env
+  artifacts:
+    reports:
+      dotenv: build.env
+  tags:
+    - kubernetes
+  only:
+    - main
+    - staging
+
+# Deploy to Kubernetes
+deploy:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  before_script:
+    - kubectl config use-context ${KUBE_CONTEXT}
+  script:
+    - export REGISTRY_URL=${DOCKER_REGISTRY}
+    # Make sure namespace exists
+    - kubectl apply -f k8s/namespace.yaml
+    
+    # Apply ConfigMap and Secret
+    - kubectl apply -f k8s/configmap.yaml
+    - cat k8s/secret.yaml | 
+      sed -e "s/T1BFTkFJX0FQSV9LRVlfUExBQ0VIT0xERVI=/${OPENAI_API_KEY_BASE64}/" |
+      kubectl apply -f -
+    
+    # Replace placeholders in deployment.yaml and apply
+    - cat k8s/deployment.yaml |
+      sed -e "s|\${REGISTRY_URL}|${DOCKER_REGISTRY}|g; s|\${IMAGE_TAG}|${IMAGE_TAG}|g" |
+      kubectl apply -f -
+    
+    # Apply Service and Ingress
+    - kubectl apply -f k8s/service.yaml
+    - kubectl apply -f k8s/ingress.yaml
+    
+    # Wait for deployment to complete
+    - kubectl -n ${KUBERNETES_NAMESPACE} rollout status deployment/low-code-assistant
+  environment:
+    name: ${CI_COMMIT_REF_NAME}
+    url: https://low-code-assistant.example.com
+  tags:
+    - kubernetes
+  only:
+    - main
+    - staging
+  needs:
+    - build

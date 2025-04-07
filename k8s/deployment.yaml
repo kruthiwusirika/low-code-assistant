@@ -25,8 +25,8 @@ spec:
     spec:
       containers:
       - name: low-code-assistant
-        image: ${REGISTRY_URL}/low-code-assistant:${IMAGE_TAG}
-        imagePullPolicy: Always
+        image: low-code-assistant:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 8501
           name: http

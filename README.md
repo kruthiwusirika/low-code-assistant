@@ -2,8 +2,11 @@
 
 ![Low-Code Assistant Logo](https://img.shields.io/badge/Low--Code%20Assistant-v1.0-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.22.0+-red)
-![Python](https://img.shields.io/badge/Python-3.8+-green)
+![Python](https://img.shields.io/badge/Python-3.9+-green)
 ![OpenAI](https://img.shields.io/badge/OpenAI-API-orange)
+![SQLite](https://img.shields.io/badge/SQLite-3-lightgrey)
+![Docker](https://img.shields.io/badge/Docker-Ready-blue)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-Configured-blue)
 
 A powerful AI-powered code generation tool designed specifically for low-code teams. This application helps developers quickly generate, understand, and transform code using OpenAI's language models.
 
@@ -12,8 +15,57 @@ A powerful AI-powered code generation tool designed specifically for low-code te
 - **AI-Powered Code Generation**: Generate code snippets in multiple programming languages
 - **Multiple Programming Languages**: Support for Python, JavaScript, Java, C#, and more
 - **Customizable Output**: Control verbosity, comments, and error handling
-- **Secure API Key Management**: Your OpenAI API key is stored securely
+- **Secure API Key Management**: Your OpenAI API key is stored securely in your user profile
 - **Simple, Intuitive UI**: Built with Streamlit for a clean, responsive interface
+- **User Authentication System**: Secure login and registration with SQLite database
+- **Live Code Editor**: Edit code in real-time with syntax highlighting
+- **AI Code Suggestions**: Get AI-powered suggestions to improve your code
+- **Implement Suggestions**: Automatically apply AI-suggested improvements with one click
+- **Code Diff Views**: See side-by-side and diff comparisons of original vs. improved code
+- **Toast Notifications**: Real-time status updates appear in the top-right corner
+- **Containerized Deployment**: Docker and Kubernetes support for easy deployment
+- **Secure Database**: User data and API keys stored in SQLite with proper security measures
+
+## 🛠️ Tech Stack
+
+### Core Technologies
+- **Python 3.9+**: Primary programming language
+- **Streamlit**: Web application framework for the user interface
+- **OpenAI API**: Powers the AI-assisted code generation and suggestions
+- **SQLite**: Database for user accounts and session management
+
+### Frontend
+- **Streamlit Components**: For interactive UI elements
+- **Streamlit Ace Editor**: Code editor with syntax highlighting
+- **Streamlit Forms**: For input collection and validation
+- **Streamlit Toast Notifications**: For real-time status updates
+- **Custom CSS**: For styling enhancements
+- **Difflib Integration**: For visualizing code changes
+
+### Backend
+- **SQLite3**: Lightweight database for user data storage
+- **Python Standard Library**:
+  - **pathlib**: Path manipulation
+  - **hashlib**: Password hashing
+  - **secrets**: Secure token generation
+  - **contextlib**: Context management
+  - **difflib**: Code difference visualization
+
+### Authentication & Security
+- **Password Hashing**: Secure storage of user passwords
+- **Session Management**: Secure user sessions
+- **API Key Storage**: Protected storage of OpenAI API keys
+
+### DevOps & Deployment
+- **Docker**: Containerization for consistent deployment
+- **Kubernetes**: Orchestration for production deployment
+- **Nginx**: Web server (used in Kubernetes setup)
+- **Environment Variables**: For configuration management
+
+### Development Tools
+- **Git**: Version control
+- **GitHub**: Code repository and collaboration
+- **Visual Studio Code**: Recommended IDE for development
 
 ## 📋 Prerequisites
 
@@ -166,27 +218,79 @@ You may need to update your DNS or hosts file to point to your cluster's ingress
 * **Live Editor:** Provide a browser-based editor with real-time suggestions.
 * **Cloud-Native Deployment:** Fully containerized with Docker and production-ready Kubernetes manifests for scalable, resilient deployment.
 
-## 🧠 Using the Application
+## 🤖 Using the Application
 
-1. **Configure API Key**: Use the "User Account Setup" section in the sidebar to configure your OpenAI API key (if not set in .env)
-2. **Select Settings**: Choose the AI model, temperature, and token limit
-3. **Generate Code**:
+### User Authentication
+
+1. **Create an Account**:
+   - When you first open the application, you'll see a login/register button in the sidebar
+   - Click it to open the authentication page
+   - Choose the "Register" tab to create a new account
+   - Fill in your details (username, email, password)
+
+2. **Login**:
+   - Enter your username/email and password
+   - Your session will be remembered until you log out
+
+3. **Manage Your Profile**:
+   - Click "View Profile" in the sidebar to access your user profile
+   - Configure your OpenAI API key securely in your profile
+
+### API Key Management
+
+1. **Add Your API Key**:
+   - Get an OpenAI API key from [OpenAI's website](https://platform.openai.com/api-keys)
+   - Add it through your user profile or the API Key section in the sidebar
+   - Your key is securely stored and never shared
+
+2. **Using Your API Key**:
+   - Once configured, the application will use your API key for all AI operations
+   - You can clear or update your API key at any time
+
+### Generating and Improving Code
+
+1. **Generate Code**:
    - Select your programming language
    - Choose the type of code you want to generate
    - Describe what you want the code to do
    - Set advanced options for comments, error handling, and code style
    - Click "Generate Code"
-4. **Use Generated Code**: View, edit, and download the generated code
 
-## 🔄 Making Changes & Pushing to Git
+2. **Work with Generated Code**:
+   - View the generated code in the "Generated Code" tab
+   - Switch to the "Live Editor" tab to modify the code
+   - Download the code with the "Download Code" button
 
-### Setting Up Git Repository
+3. **Improve Your Code**:
+   - With code in the editor, click "Get AI Suggestions" to receive improvement recommendations
+   - Review the AI's suggestions
+   - Click "Implement Suggestions" to have the AI automatically apply the improvements
+   - You'll see toast notifications in the top-right corner showing the progress
+   - Review the side-by-side comparison of the original and improved code
+   - Examine the detailed diff view showing exactly what changes were made
+   - The improvements are automatically applied to your code in the editor
+
+## 🔄 Making Changes & Pushing to GitHub
+
+### Important Considerations
+
+1. **Database Security**: 
+   - The database with user credentials is stored in the `data/` directory
+   - This directory is already added to `.gitignore` to prevent accidentally pushing user data
+   - Make sure to never commit the `data/users.db` file to your repository
+
+2. **API Keys**: 
+   - Never commit API keys to GitHub
+   - Keep the `.env` file in `.gitignore`
+   - For Kubernetes deployments, use secrets for storing API keys
+
+### Setting Up Your GitHub Repository
 
 ```bash
 # Initialize Git repository (if not cloned)
 git init
 
-# Add all files
+# Add all files (the .gitignore will exclude sensitive files)
 git add .
 
 # Create initial commit
@@ -198,6 +302,39 @@ git remote add origin https://github.com/yourusername/low-code-assistant.git
 # Push to GitHub
 git push -u origin main
 ```
+
+### Contributing Guidelines
+
+When making changes to the Low-Code Assistant:
+
+1. **Create a feature branch**:
+   ```bash
+   git checkout -b feature/my-new-feature
+   ```
+
+2. **Make your changes**:
+   - Follow the code style of the project
+   - Add tests if possible
+   - Update documentation accordingly
+
+3. **Test your changes**:
+   - Run the application locally and test all affected features
+   - For authentication changes, ensure user data is handled securely
+
+4. **Commit your changes**:
+   ```bash
+   git commit -m "Add feature: detailed description of changes"
+   ```
+
+5. **Push to your branch**:
+   ```bash
+   git push origin feature/my-new-feature
+   ```
+
+6. **Create a Pull Request**:
+   - Go to GitHub and create a pull request
+   - Describe your changes in detail
+   - Mention any issues that your PR addresses
 
 ### Important: Protect Your API Key
 

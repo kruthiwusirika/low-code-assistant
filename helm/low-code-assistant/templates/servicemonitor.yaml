@@ -1,0 +1,16 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "low-code-assistant.fullname" . }}
+  labels:
+    {{- include "low-code-assistant.labels" . | nindent 4 }}
+spec:
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 15s
+  selector:
+    matchLabels:
+      {{- include "low-code-assistant.selectorLabels" . | nindent 6 }}
+{{- end }}

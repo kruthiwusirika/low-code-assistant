@@ -12,6 +12,10 @@ sys.path.append(str(project_root))
 from utils.code_generator import CodeGenerator
 from utils.template_manager import TemplateManager
 from utils.config_loader import load_config
+from utils.user_manager import UserManager
+
+# Import authentication module
+from app.auth import login_page, logout, require_auth, user_profile, init_session_state
 
 # Page configuration
 st.set_page_config(
@@ -32,6 +36,9 @@ template_manager = TemplateManager()
 with open(project_root / "static" / "styles.css", "r") as f:
     st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
+# Initialize authentication session state
+init_session_state()
+
 # Session state initialization
 if "generated_code" not in st.session_state:
     st.session_state.generated_code = ""
@@ -45,19 +52,39 @@ with st.sidebar:
     st.image(project_root / "static" / "logo.png", width=200)
     st.title("Low-Code Assistant")
     
-    # API Key input
-    api_key = st.text_input("OpenAI API Key", type="password")
-    if api_key:
-        os.environ["OPENAI_API_KEY"] = api_key
+    # Show user info if authenticated, otherwise show login button
+    if st.session_state.authenticated:
+        st.write(f"Welcome, {st.session_state.user['username']}!")
+        if st.button("Logout"):
+            logout()
+            st.rerun()
+    else:
+        if st.button("Login / Register"):
+            login_page()
+            st.rerun()
+    
+    # API Key display (if authenticated and has API key)
+    if st.session_state.authenticated and st.session_state.user.get('api_key'):
+        st.success("API Key configured")
+        if st.button("Update API Key"):
+            st.session_state.page = "User Profile"
+            st.rerun()
+    elif not st.session_state.authenticated:
+        # Fallback for non-authenticated users
+        api_key = st.text_input("OpenAI API Key", type="password")
+        if api_key:
+            os.environ["OPENAI_API_KEY"] = api_key
     
     st.divider()
     
     # Navigation
     st.subheader("Navigation")
-    page = st.radio(
-        "Select a page",
-        ["Code Generator", "Template Library", "Code Translator", "Settings"]
+    page = st.selectbox(
+        "Navigation",
+        ["Code Generator", "Template Library", "Code Translator", "Settings", "User Profile"],
+        index=["Code Generator", "Template Library", "Code Translator", "Settings", "User Profile"].index(st.session_state.page)
     )
+    st.session_state.page = page
     
     st.divider()
     
@@ -73,6 +100,11 @@ with st.sidebar:
     
     st.divider()
     st.markdown("Made with ❤️ for low-code teams")
+
+# Check if user is authenticated
+if not st.session_state.authenticated and not login_page():
+    # Stop execution if not authenticated and not on login page
+    st.stop()
 
 # Main content
 if page == "Code Generator":
@@ -335,6 +367,10 @@ elif page == "Settings":
     st.header("Settings")
     
     st.subheader("API Configuration")
+    
+elif page == "User Profile":
+    # Show user profile page
+    user_profile()
     
     # API Provider
     api_provider = st.selectbox(

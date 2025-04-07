@@ -1,5 +1,10 @@
+"""
+Template Manager for the Low-Code Assistant.
+This is a simplified version that handles template management functionality.
+"""
 import os
 import json
+import re
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 import logging
@@ -22,252 +27,134 @@ class TemplateManager:
         self.logger = logging.getLogger(__name__)
         
         # Set templates directory
-        if templates_dir:
-            self.templates_dir = Path(templates_dir)
-        else:
+        if templates_dir is None:
             # Default to project's templates directory
-            self.templates_dir = Path(__file__).parent.parent / "templates"
+            self.templates_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "templates")
+        else:
+            self.templates_dir = templates_dir
         
         # Create templates directory if it doesn't exist
-        self.templates_dir.mkdir(parents=True, exist_ok=True)
+        os.makedirs(self.templates_dir, exist_ok=True)
         
-        # Initialize templates index file if it doesn't exist
-        self.index_file = self.templates_dir / "index.json"
-        if not self.index_file.exists():
-            self._initialize_index()
-    
-    def _initialize_index(self) -> None:
-        """Initialize the templates index file."""
-        initial_index = {
-            "templates": [],
-            "last_updated": datetime.now().isoformat()
-        }
+        # Templates file path
+        self.templates_file = os.path.join(self.templates_dir, "templates.json")
         
-        with open(self.index_file, "w") as f:
-            json.dump(initial_index, f, indent=2)
-            
-        self.logger.info(f"Initialized templates index at {self.index_file}")
-    
-    def _load_index(self) -> Dict[str, Any]:
-        """
-        Load the templates index from disk.
+        # Load existing templates or create empty list
+        self.templates = self.load_templates()
         
-        Returns:
-            Dict[str, Any]: The templates index
-        """
-        try:
-            with open(self.index_file, "r") as f:
-                return json.load(f)
-        except Exception as e:
-            self.logger.error(f"Error loading templates index: {str(e)}")
-            # If there's an error, reinitialize the index
-            self._initialize_index()
-            return {"templates": [], "last_updated": datetime.now().isoformat()}
+        # Create default templates if none exist
+        if not self.templates:
+            self.create_default_templates()
     
-    def _save_index(self, index: Dict[str, Any]) -> None:
+    def load_templates(self) -> List[Dict[str, Any]]:
+        """Load templates from the templates file."""
+        if os.path.exists(self.templates_file):
+            try:
+                with open(self.templates_file, 'r') as f:
+                    return json.load(f)
+            except json.JSONDecodeError:
+                self.logger.error("Error decoding templates JSON file. Creating new templates.")
+                return []
+        return []
+    
+    def save_templates(self) -> None:
+        """Save templates to the templates file."""
+        with open(self.templates_file, 'w') as f:
+            json.dump(self.templates, f, indent=2)
+    
+    def add_template(self, template: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Save the templates index to disk.
+        Add a new template.
         
         Args:
-            index (Dict[str, Any]): The templates index to save
-        """
-        try:
-            index["last_updated"] = datetime.now().isoformat()
-            with open(self.index_file, "w") as f:
-                json.dump(index, f, indent=2)
-        except Exception as e:
-            self.logger.error(f"Error saving templates index: {str(e)}")
-    
-    def get_template_list(self) -> List[str]:
-        """
-        Get a list of all available template names.
-        
-        Returns:
-            List[str]: List of template names
-        """
-        index = self._load_index()
-        return [template["name"] for template in index["templates"]]
-    
-    def get_template(self, name: str) -> Optional[Dict[str, Any]]:
-        """
-        Get a template by name.
-        
-        Args:
-            name (str): Name of the template
+            template (Dict[str, Any]): Template to add
             
         Returns:
-            Dict[str, Any]: Template data or None if not found
+            Dict[str, Any]: Added template with ID
         """
-        index = self._load_index()
-        for template in index["templates"]:
-            if template["name"] == name:
-                try:
-                    # Load full template from its file
-                    template_file = self.templates_dir / f"{self._sanitize_filename(name)}.json"
-                    with open(template_file, "r") as f:
-                        return json.load(f)
-                except Exception as e:
-                    self.logger.error(f"Error loading template {name}: {str(e)}")
-                    return None
+        # Add timestamp and ID
+        template["id"] = self.generate_id(template.get("name", "Untitled"))
+        template["created_at"] = datetime.now().isoformat()
+        template["updated_at"] = template["created_at"]
         
-        self.logger.warning(f"Template {name} not found")
+        # Add template to list
+        self.templates.append(template)
+        
+        # Save templates
+        self.save_templates()
+        
+        return template
+    
+    def get_template(self, template_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get a template by ID.
+        
+        Args:
+            template_id (str): ID of template to get
+            
+        Returns:
+            Optional[Dict[str, Any]]: Template if found, None otherwise
+        """
+        for template in self.templates:
+            if template.get("id") == template_id:
+                return template
         return None
     
-    def save_template(self, 
-                     name: str, 
-                     code: str, 
-                     description: str = "", 
-                     language: str = "python", 
-                     code_type: str = "function") -> bool:
+    def update_template(self, template_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
-        Save a new template.
+        Update a template.
         
         Args:
-            name (str): Name of the template
-            code (str): Code content
-            description (str): Description of the template
-            language (str): Programming language
-            code_type (str): Type of code
+            template_id (str): ID of template to update
+            updates (Dict[str, Any]): Updates to apply
             
         Returns:
-            bool: Success status
+            Optional[Dict[str, Any]]: Updated template if found, None otherwise
         """
-        try:
-            # Prepare template data
-            template_data = {
-                "name": name,
-                "description": description,
-                "language": language,
-                "code_type": code_type,
-                "code": code,
-                "created_at": datetime.now().isoformat(),
-                "updated_at": datetime.now().isoformat()
-            }
-            
-            # Save template to its own file
-            template_file = self.templates_dir / f"{self._sanitize_filename(name)}.json"
-            with open(template_file, "w") as f:
-                json.dump(template_data, f, indent=2)
-            
-            # Update index
-            index = self._load_index()
-            
-            # Check if template with this name already exists
-            existing = False
-            for i, template in enumerate(index["templates"]):
-                if template["name"] == name:
-                    # Update existing entry
-                    index["templates"][i] = {
-                        "name": name,
-                        "language": language,
-                        "code_type": code_type,
-                        "updated_at": datetime.now().isoformat()
-                    }
-                    existing = True
-                    break
-            
-            if not existing:
-                # Add new entry to index
-                index["templates"].append({
-                    "name": name,
-                    "language": language,
-                    "code_type": code_type,
-                    "updated_at": datetime.now().isoformat()
-                })
-            
-            # Save updated index
-            self._save_index(index)
-            
-            self.logger.info(f"Template {name} saved successfully")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Error saving template {name}: {str(e)}")
-            return False
+        for i, template in enumerate(self.templates):
+            if template.get("id") == template_id:
+                # Apply updates
+                template.update(updates)
+                # Update timestamp
+                template["updated_at"] = datetime.now().isoformat()
+                # Update in list
+                self.templates[i] = template
+                # Save templates
+                self.save_templates()
+                return template
+        return None
     
-    def update_template(self, name: str, code: str) -> bool:
-        """
-        Update an existing template's code.
-        
-        Args:
-            name (str): Name of the template
-            code (str): Updated code content
-            
-        Returns:
-            bool: Success status
-        """
-        try:
-            # Get existing template
-            template = self.get_template(name)
-            if not template:
-                self.logger.warning(f"Cannot update template {name}: not found")
-                return False
-            
-            # Update code and timestamp
-            template["code"] = code
-            template["updated_at"] = datetime.now().isoformat()
-            
-            # Save updated template
-            template_file = self.templates_dir / f"{self._sanitize_filename(name)}.json"
-            with open(template_file, "w") as f:
-                json.dump(template, f, indent=2)
-            
-            # Update index entry
-            index = self._load_index()
-            for i, idx_template in enumerate(index["templates"]):
-                if idx_template["name"] == name:
-                    index["templates"][i]["updated_at"] = datetime.now().isoformat()
-                    break
-            
-            # Save updated index
-            self._save_index(index)
-            
-            self.logger.info(f"Template {name} updated successfully")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Error updating template {name}: {str(e)}")
-            return False
-    
-    def delete_template(self, name: str) -> bool:
+    def delete_template(self, template_id: str) -> bool:
         """
         Delete a template.
         
         Args:
-            name (str): Name of the template
+            template_id (str): ID of template to delete
             
         Returns:
-            bool: Success status
+            bool: True if deleted, False otherwise
         """
-        try:
-            # Delete template file
-            template_file = self.templates_dir / f"{self._sanitize_filename(name)}.json"
-            if template_file.exists():
-                template_file.unlink()
-            
-            # Update index
-            index = self._load_index()
-            index["templates"] = [t for t in index["templates"] if t["name"] != name]
-            self._save_index(index)
-            
-            self.logger.info(f"Template {name} deleted successfully")
-            return True
-            
-        except Exception as e:
-            self.logger.error(f"Error deleting template {name}: {str(e)}")
-            return False
+        for i, template in enumerate(self.templates):
+            if template.get("id") == template_id:
+                # Remove from list
+                del self.templates[i]
+                # Save templates
+                self.save_templates()
+                return True
+        return False
     
-    def _sanitize_filename(self, name: str) -> str:
-        """
-        Sanitize a name for use as a filename.
-        
-        Args:
-            name (str): Name to sanitize
-            
-        Returns:
-            str: Sanitized filename
-        """
-        # Replace spaces with underscores and remove special characters
+    def get_all_templates(self) -> List[Dict[str, Any]]:
+        """Get all templates."""
+        return self.templates
+    
+    def generate_id(self, name: str) -> str:
+        """Generate a unique ID based on name and timestamp."""
+        timestamp = int(datetime.now().timestamp())
+        sanitized = self.sanitize_name(name)
+        return f"{sanitized}_{timestamp}"
+    
+    def sanitize_name(self, name: str) -> str:
+        """Sanitize a name for use in an ID."""
         sanitized = name.replace(" ", "_")
         sanitized = "".join(c for c in sanitized if c.isalnum() or c in "_-")
         return sanitized
@@ -289,129 +176,164 @@ app = Flask(__name__)
 
 def validate_json(f):
     @wraps(f)
-    def wrapper(*args, **kw):
+    def wrapper(*args, **kwargs):
         try:
-            request.json
+            if request.get_data():
+                request.json
         except BadRequest:
-            return jsonify({"error": "Invalid JSON payload"}), 400
-        return f(*args, **kw)
+            return jsonify({"error": "Invalid JSON format"}), 400
+        return f(*args, **kwargs)
     return wrapper
 
-@app.route('/api/resource', methods=['POST'])
+@app.route('/api/v1/resource', methods=['POST'])
 @validate_json
 def create_resource():
-    data = request.json
+    # Get JSON data
+    data = request.get_json()
     
     # Validate required fields
-    required_fields = ['name', 'type']
-    missing_fields = [field for field in required_fields if field not in data]
+    if 'name' not in data:
+        return jsonify({"error": "Missing required field: name"}), 400
     
-    if missing_fields:
+    # Process the request (in a real app, you'd interact with a database or other service)
+    try:
+        # Example processing logic
+        resource_id = 123  # In a real app, this would be generated or returned from a database
+        
+        # Return success response
         return jsonify({
-            "error": "Missing required fields",
-            "fields": missing_fields
-        }), 400
-    
-    # Process the request (replace with your actual logic)
-    resource_id = 12345  # In a real app, this would be generated or retrieved from a database
-    
-    # Return success response
-    return jsonify({
-        "status": "success",
-        "message": "Resource created successfully",
-        "resource_id": resource_id
-    }), 201
+            "id": resource_id,
+            "name": data['name'],
+            "message": "Resource created successfully"
+        }), 201
+    except Exception as e:
+        # Log the error (in a real app)
+        app.logger.error(f"Error creating resource: {str(e)}")
+        
+        # Return error response
+        return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)"""
+    app.run(debug=True)
+"""
             },
             {
                 "name": "JavaScript Form Validation",
-                "description": "Client-side form validation with error handling and submission.",
+                "description": "Client-side form validation script with error handling and feedback.",
                 "language": "JavaScript",
-                "code_type": "Function",
+                "code_type": "Utility Function",
                 "code": """/**
- * Validates a form and handles submission
+ * Validate a form with customizable rules
  * @param {string} formId - The ID of the form to validate
- * @param {function} onSuccess - Callback function to execute on successful validation
+ * @param {Object} rules - Validation rules for each field
+ * @param {Object} messages - Custom error messages (optional)
  * @returns {boolean} - Whether the form is valid
  */
-function validateForm(formId, onSuccess) {
+function validateForm(formId, rules, messages = {}) {
     const form = document.getElementById(formId);
     if (!form) {
         console.error(`Form with ID "${formId}" not found`);
         return false;
     }
     
-    // Get all form inputs that require validation
-    const requiredInputs = form.querySelectorAll('[required]');
-    const emailInputs = form.querySelectorAll('input[type="email"]');
+    // Track validation status
+    let isValid = true;
     
     // Clear previous error messages
     const errorElements = form.querySelectorAll('.error-message');
     errorElements.forEach(el => el.remove());
     
-    let isValid = true;
-    
-    // Validate required fields
-    requiredInputs.forEach(input => {
-        if (!input.value.trim()) {
+    // Validate each field according to rules
+    for (const fieldName in rules) {
+        const input = form.querySelector(`[name="${fieldName}"]`);
+        if (!input) {
+            console.warn(`Field "${fieldName}" not found in form`);
+            continue;
+        }
+        
+        // Get field rules
+        const fieldRules = rules[fieldName];
+        
+        // Get field value and trim if it's a string
+        let value = input.value;
+        if (typeof value === 'string') {
+            value = value.trim();
+        }
+        
+        // Check required
+        if (fieldRules.required && !value) {
+            const message = messages[fieldName]?.required || `${fieldName} is required`;
+            markInvalid(input, message);
             isValid = false;
-            showError(input, 'This field is required');
+            continue;
         }
-    });
+        
+        // Skip other validations if empty and not required
+        if not value and not field_rules.get('required', False):
+            continue
+        
+        # Check minimum length
+        if field_rules.get('min_length') and len(value) < field_rules['min_length']:
+            message = messages.get(field_name, {}).get('min_length') or \
+                f"{field_name} must be at least {field_rules['min_length']} characters"
+            mark_invalid(input_field, message)
+            is_valid = False
+            continue
+        
+        # Check maximum length
+        if field_rules.get('max_length') and len(value) > field_rules['max_length']:
+            message = messages.get(field_name, {}).get('max_length') or \
+                f"{field_name} must be at most {field_rules['max_length']} characters"
+            mark_invalid(input_field, message)
+            is_valid = False
+            continue
+        
+        # Check pattern
+        if field_rules.get('pattern') and not re.match(field_rules['pattern'], value):
+            message = messages.get(field_name, {}).get('pattern') or \
+                f"{field_name} must match pattern {field_rules['pattern']}"
+            mark_invalid(input_field, message)
+            is_valid = False
+            continue
+        
+        # Check if email
+        if field_rules.get('email') and not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', value):
+            message = messages.get(field_name, {}).get('email') or \
+                f"{field_name} must be a valid email address"
+            mark_invalid(input_field, message)
+            is_valid = False
+            continue
+        
+        # Check custom validator
+        if field_rules.get('custom') and callable(field_rules['custom']):
+            custom_result = field_rules['custom'](value)
+            if custom_result is not True:
+                message = custom_result if isinstance(custom_result, str) else \
+                    messages.get(field_name, {}).get('custom') or f"{field_name} is invalid"
+                mark_invalid(input_field, message)
+                is_valid = False
+                continue
     
-    // Validate email format
-    emailInputs.forEach(input => {
-        if (input.value.trim() && !isValidEmail(input.value)) {
-            isValid = false;
-            showError(input, 'Please enter a valid email address');
-        }
-    });
-    
-    // If the form is valid, call the success callback
-    if (isValid && typeof onSuccess === 'function') {
-        onSuccess(form);
-    }
-    
-    return isValid;
-}
+    return is_valid
 
-/**
- * Checks if an email address is valid
- * @param {string} email - The email address to validate
- * @returns {boolean} - Whether the email is valid
- */
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-}
-
-/**
- * Shows an error message for a form input
- * @param {HTMLElement} input - The input element
- * @param {string} message - The error message
- */
-function showError(input, message) {
-    const errorElement = document.createElement('div');
-    errorElement.className = 'error-message';
-    errorElement.style.color = 'red';
-    errorElement.style.fontSize = '12px';
-    errorElement.style.marginTop = '5px';
-    errorElement.textContent = message;
+def mark_invalid(input_field, message):
+    """
+    Mark a field as invalid with an error message.
     
-    input.style.borderColor = 'red';
-    input.parentNode.appendChild(errorElement);
+    Args:
+        input_field: The input field element
+        message: Error message to display
+    """
+    # In Python/Streamlit context, this would use streamlit's error display
+    # or return error information to be displayed
+    # This is a simplified version for the template
     
-    // Remove error styling when input changes
-    input.addEventListener('input', function() {
-        input.style.borderColor = '';
-        const error = input.parentNode.querySelector('.error-message');
-        if (error) {
-            error.remove();
-        }
-    });
-}"""
+    # Log the error for debugging
+    logging.error(f"Validation error: {message}")
+    
+    # In a real app, we might set some state or return the error
+    # For now, we'll just pass since this is template code
+    pass
             },
             {
                 "name": "Python Database Connection",
@@ -421,12 +343,11 @@ function showError(input, message) {
                 "code": """import os
 import logging
 from typing import Dict, Any, Optional, List
-import pymysql
-from pymysql.cursors import DictCursor
-from dbutils.pooled_db import PooledDB
+import sqlite3
+from contextlib import contextmanager
 
 class DatabaseManager:
-    # Database connection manager with connection pooling.
+    # Database connection manager with connection pooling
     
     _instance = None
     
@@ -437,144 +358,109 @@ class DatabaseManager:
             cls._instance._initialized = False
         return cls._instance
     
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, db_path: Optional[str] = None):
         """Initialize the database manager with connection config."""
         # Only initialize once (singleton pattern)
-        if self._initialized:
+        if hasattr(self, '_initialized') and self._initialized:
             return
             
         # Set up logging
         logging.basicConfig(level=logging.INFO)
         self.logger = logging.getLogger(__name__)
         
-        # Load configuration
-        self.config = config or {
-            'host': os.getenv('DB_HOST', 'localhost'),
-            'port': int(os.getenv('DB_PORT', 3306)),
-            'user': os.getenv('DB_USER', 'root'),
-            'password': os.getenv('DB_PASSWORD', ''),
-            'database': os.getenv('DB_NAME', 'database'),
-            'charset': 'utf8mb4',
-            'cursorclass': DictCursor,
-            'autocommit': True
-        }
+        # Set database path
+        self.db_path = db_path or os.getenv('DB_PATH', 'database.sqlite')
         
-        # Initialize connection pool
+        # Flag as initialized
+        self._initialized = True
+        
+        # Initialize database
+        self._init_db()
+    
+    def _init_db(self) -> None:
+        """Initialize the database if it doesn't exist."""
         try:
-            self.pool = PooledDB(
-                creator=pymysql,
-                maxconnections=10,  # Maximum number of connections
-                mincached=2,        # Minimum number of idle connections in the pool
-                maxcached=5,        # Maximum number of idle connections in the pool
-                blocking=True,      # Block when pool is full
-                **self.config
-            )
-            self.logger.info("Database connection pool initialized successfully")
-            self._initialized = True
+            with self.get_connection() as conn:
+                # Create tables here if needed
+                pass
+                
+            self.logger.info(f"Database initialized: {self.db_path}")
         except Exception as e:
-            self.logger.error(f"Error initializing database pool: {str(e)}")
+            self.logger.error(f"Error initializing database: {str(e)}")
             raise
     
+    @contextmanager
     def get_connection(self):
-        """Get a connection from the pool."""
+        """Get a database connection."""
+        conn = None
         try:
-            return self.pool.connection()
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row  # Return rows as dictionaries
+            yield conn
         except Exception as e:
-            self.logger.error(f"Error getting database connection: {str(e)}")
-            raise
-    
-    def execute_query(self, query: str, params: Optional[tuple] = None) -> List[Dict[str, Any]]:
-        """
-        Execute a SQL query and return the results.
-        
-        Args:
-            query (str): SQL query to execute
-            params (tuple, optional): Parameters for the query
-            
-        Returns:
-            List[Dict[str, Any]]: Query results as a list of dictionaries
-        """
-        with self.get_connection() as conn:
-            with conn.cursor() as cursor:
-                try:
-                    cursor.execute(query, params or ())
-                    return cursor.fetchall()
-                except Exception as e:
-                    self.logger.error(f"Error executing query: {str(e)}")
-                    self.logger.error(f"Query: {query}")
-                    self.logger.error(f"Params: {params}")
-                    raise
-    
-    def execute_update(self, query: str, params: Optional[tuple] = None) -> int:
-        """
-        Execute an update query (INSERT, UPDATE, DELETE).
-        
-        Args:
-            query (str): SQL query to execute
-            params (tuple, optional): Parameters for the query
-            
-        Returns:
-            int: Number of affected rows
-        """
-        with self.get_connection() as conn:
-            with conn.cursor() as cursor:
-                try:
-                    affected_rows = cursor.execute(query, params or ())
-                    return affected_rows
-                except Exception as e:
-                    conn.rollback()
-                    self.logger.error(f"Error executing update: {str(e)}")
-                    self.logger.error(f"Query: {query}")
-                    self.logger.error(f"Params: {params}")
-                    raise
-    
-    def execute_transaction(self, queries: List[Dict[str, Any]]) -> bool:
-        """
-        Execute multiple queries in a transaction.
-        
-        Args:
-            queries (List[Dict[str, Any]]): List of query dictionaries with 'query' and 'params' keys
-            
-        Returns:
-            bool: Success status
-        """
-        conn = self.get_connection()
-        try:
-            with conn:
-                conn.begin()
-                cursor = conn.cursor()
-                
-                for query_info in queries:
-                    cursor.execute(query_info['query'], query_info.get('params', ()))
-                
-                conn.commit()
-                return True
-        except Exception as e:
-            conn.rollback()
-            self.logger.error(f"Error executing transaction: {str(e)}")
+            self.logger.error(f"Database connection error: {str(e)}")
             raise
         finally:
-            conn.close()
-
-# Example usage
-if __name__ == "__main__":
-    # Initialize the database manager
-    db = DatabaseManager()
+            if conn:
+                conn.close()
     
-    # Example query
-    try:
-        results = db.execute_query("SELECT * FROM users WHERE status = %s", ('active',))
-        print(f"Found {len(results)} active users")
-    except Exception as e:
-        print(f"Error querying users: {str(e)}")"""
+    def execute_query(self, query: str, params: Optional[tuple] = None) -> List[Dict[str, Any]]:
+        """Execute a query and return results."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(query, params or ())
+                conn.commit()
+                
+                # Convert results to dictionaries
+                if cursor.description:
+                    columns = [col[0] for col in cursor.description]
+                    return [dict(zip(columns, row)) for row in cursor.fetchall()]
+                return []
+        except Exception as e:
+            self.logger.error(f"Query execution error: {str(e)}")
+            raise
+    
+    def execute_many(self, query: str, params_list: List[tuple]) -> None:
+        """Execute a query with multiple parameter sets."""
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.executemany(query, params_list)
+                conn.commit()
+        except Exception as e:
+            self.logger.error(f"Batch query execution error: {str(e)}")
+            raise
+    
+    def insert_one(self, table: str, data: Dict[str, Any]) -> int:
+        """Insert a single record and return the ID."""
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join(['?' for _ in data])
+        query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
+        
+        try:
+            with self.get_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(query, tuple(data.values()))
+                conn.commit()
+                return cursor.lastrowid
+        except Exception as e:
+            self.logger.error(f"Insert error: {str(e)}")
+            raise
+    
+    def get_by_id(self, table: str, id_value: int, id_column: str = 'id') -> Optional[Dict[str, Any]]:
+        """Get a record by ID."""
+        query = f"SELECT * FROM {table} WHERE {id_column} = ?"
+        
+        try:
+            results = self.execute_query(query, (id_value,))
+            return results[0] if results else None
+        except Exception as e:
+            self.logger.error(f"Get by ID error: {str(e)}")
+            raise
+"""
             }
         ]
         
         for template in default_templates:
-            self.save_template(
-                name=template["name"],
-                code=template["code"],
-                description=template["description"],
-                language=template["language"],
-                code_type=template["code_type"]
-            )
+            self.add_template(template)

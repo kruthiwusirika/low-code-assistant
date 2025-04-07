@@ -1,0 +1,37 @@
+# Version control
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+lowcode/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment variables
+.env
+.env.*
+!.env.template
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build and temp files
+*.log
+.DS_Store
+
+# Local data
+data/
+
+# Test coverage
+.coverage
+htmlcov/

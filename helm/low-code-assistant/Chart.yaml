@@ -1,0 +1,9 @@
+apiVersion: v2
+name: low-code-assistant
+description: A Helm chart for Low-Code Assistant application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+maintainers:
+  - name: "Low-Code Team"
+    email: "example@example.com"
