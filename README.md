@@ -1,46 +1,90 @@
-# LLM-Driven Coding Assistant
+# LLM-Driven Coding Assistant for Enterprise Low-Code Teams
 
 ![LLM Coding Assistant](https://img.shields.io/badge/LLM--Driven%20Coding%20Assistant-v2.0-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.22.0+-red)
 ![Python](https://img.shields.io/badge/Python-3.9+-green)
 ![LLM Integration](https://img.shields.io/badge/LLM-API%20%26%20Local-orange)
 ![Fine-Tuning](https://img.shields.io/badge/Fine--Tuning-GitHub%20Repos-purple)
-![SQLite](https://img.shields.io/badge/SQLite-3-lightgrey)
+![Enterprise Ready](https://img.shields.io/badge/Enterprise-Ready-yellow)
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-Configured-blue)
 
-A powerful web application that uses both API-based and open-source LLMs to provide coding assistance, auto-completions, and "explain code" functionalities. This application helps developers quickly generate, understand, and transform code using state-of-the-art language models.
+A powerful enterprise-grade web application designed specifically for low-code development teams. This LLM-driven solution provides coding assistance, auto-completions, and "explain code" functionalities through both API-based and open-source language models, empowering enterprise teams to accelerate their development process and enhance code quality.
 
-## 🚀 Key Features
+## 🚀 Key Components & Highlights
 
-### LLM Integration
-- **Multiple LLM Options**: Use either API-based models (OpenAI, Anthropic, Google) or locally hosted open-source models
-- **Code-Focused Models**: Integration with specialized code LLMs like CodeLlama
-- **Flexible Configuration**: Choose between different model sizes and capabilities based on your needs
+### 1. Model Integration
+Our solution provides flexible model integration options designed for enterprise environments:
 
-### Fine-Tuning
-- **GitHub Repository Training**: Fine-tune models on popular GitHub repositories for specific languages or frameworks
-- **Custom Model Creation**: Create specialized coding assistants for your tech stack
-- **Training Pipeline**: Complete workflow for model fine-tuning with minimal setup
+- **Dual Model Support**: Choose between enterprise API services (OpenAI, Anthropic, Google) or locally hosted open-source models for data privacy
+- **Code-Focused Models**: Integration with specialized code LLMs like CodeLlama that understand enterprise coding patterns
+- **Enterprise Security**: Local model hosting option for companies with strict data policies and security requirements
+- **Configurable Model Selection**: Run smaller models locally for quick suggestions or leverage larger API models for complex code generation
 
-### Live Editor
-- **Real-time Suggestions**: Get code improvements as you type with auto-suggest
-- **Code Explanation**: Understand complex code with detailed explanations
-- **Syntax Highlighting**: Support for multiple programming languages
-- **Code Diff View**: See exactly what changes are being suggested
-- **One-Click Implementation**: Apply suggestions directly to your code
+### 2. Fine-Tuning
+Customize models to your enterprise tech stack with our advanced fine-tuning capabilities:
 
-### CI/CD & Deployment
-- **Docker Container**: Complete application containerization
-- **Kubernetes Manifests**: Production-ready K8s deployment configuration
-- **Helm Charts**: Easy deployment to cloud environments
-- **Cloud Provider Guides**: Detailed instructions for AWS EKS, GCP GKE, and Azure AKS
+- **GitHub Repository Training**: Fine-tune on public repositories matching your enterprise frameworks and languages
+- **Custom Domain Adaptation**: Create models specialized in your company's coding standards and patterns
+- **Automated Training Pipeline**: Enterprise-grade workflow for model fine-tuning with minimal DevOps overhead
+- **Performance Optimization**: Models tuned specifically for low-code platforms and enterprise frameworks
 
-### Additional Features
-- **User Authentication System**: Secure login and registration
-- **API Key Management**: Securely store and manage your API keys
-- **Toast Notifications**: Real-time status notifications
-- **Mobile-Friendly Interface**: Responsive design for all devices
+## 🧠 Enterprise Workflow
+
+### For Enterprise Low-Code Teams
+
+Our solution is specifically designed to enhance productivity for low-code development teams in enterprise environments, where code quality and consistency are critical:
+
+1. **Team Onboarding**: Enterprise SSO integration allows teams to quickly access the platform
+2. **Framework Configuration**: Enterprise administrators configure the system for specific low-code platforms
+3. **Knowledge Integration**: Teams can fine-tune models on their enterprise codebases for specialized assistance
+4. **Development Acceleration**: Low-code developers receive intelligent suggestions aligned with enterprise standards
+5. **Quality Enforcement**: AI ensures consistent code quality across the entire enterprise development team
+
+### API-based Model Flow (For Teams with External API Access)
+1. **Enterprise Authentication**: Team members authenticate through company SSO
+2. **Centralized API Management**: API keys are securely managed at the enterprise level
+3. **Collaborative Editing**: Team members work in the browser-based editor with enterprise code templates
+4. **Secure API Processing**: Code is securely sent to enterprise-approved APIs for analysis
+5. **Standardized Implementation**: Suggestions aligned with enterprise coding standards are implemented
+
+### Local Model Flow (For Security-Conscious Enterprises)
+1. **Private Deployment**: Models run entirely within the enterprise's secure infrastructure
+2. **Air-gapped Option**: Support for enterprises with no external API access requirements
+3. **Local Processing**: Code never leaves the enterprise network
+4. **Compliance-Friendly**: Adheres to strict data governance and regulatory requirements
+5. **Custom Enterprise Knowledge**: Models can be fine-tuned on proprietary enterprise code
+
+### Enterprise Fine-Tuning Pipeline
+1. **Enterprise Framework Selection**: Choose models specialized for your enterprise tech stack
+2. **Curated Repository Access**: Select from pre-approved repositories or internal codebases
+3. **Managed Training Process**: Fine-tuning runs within enterprise infrastructure
+4. **Enterprise Model Registry**: Trained models are cataloged for team access
+5. **Governance Controls**: Enterprise administrators manage model versions and deployment
+
+### 3. Live Editor
+Accelerate enterprise development with our intelligent browser-based editor:
+
+- **Real-time Suggestions**: Intelligent code completions as you type with enterprise pattern recognition
+- **Code Explanation**: Make complex enterprise code accessible to low-code teams
+- **Multi-language Support**: Full syntax highlighting for all major enterprise languages
+- **Visual Diff Compare**: Enterprise-grade visualization of suggested code changes
+- **Seamless Implementation**: Apply AI suggestions with one-click workflow integration
+
+### 4. CI/CD & Deployment
+Enterprise-ready cloud-native deployment options:
+
+- **Docker Containerization**: Complete application packaging based on Python 3.9-slim with enhanced security
+- **Kubernetes Manifests**: Production-grade K8s configurations with namespace, deployment, service, and ingress resources
+- **Helm Charts**: Streamlined enterprise deployment across multiple environments
+- **Enterprise Cloud Support**: Detailed deployment guides for AWS EKS, Azure AKS, and GCP GKE
+- **Scalability Built-in**: Horizontal pod autoscaling for enterprise workloads
+
+### Enterprise Enhancements
+- **Role-based Access Control**: Different permission levels for enterprise team members
+- **Enterprise Authentication**: Integration with SSO and identity providers
+- **Secure Key Management**: Enterprise-grade handling of API keys
+- **Team Collaboration**: Share and collaborate on code within enterprise teams
 
 ## 🛠️ Tech Stack
 

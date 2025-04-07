@@ -268,7 +268,7 @@ function validateForm(formId, rules, messages = {}) {
             continue;
         }
         
-        // Skip other validations if empty and not required
+        # Skip other validations if empty and not required
         if not value and not field_rules.get('required', False):
             continue
         
@@ -334,7 +334,9 @@ def mark_invalid(input_field, message):
     # In a real app, we might set some state or return the error
     # For now, we'll just pass since this is template code
     pass
-            },
+
+# Complete the default_templates list with more templates
+default_templates.extend([
             {
                 "name": "Python Database Connection",
                 "description": "A template for connecting to a database with error handling and connection pooling.",
@@ -458,9 +460,9 @@ class DatabaseManager:
         except Exception as e:
             self.logger.error(f"Get by ID error: {str(e)}")
             raise
-"""
+                """
             }
-        ]
+        ])
         
         for template in default_templates:
             self.add_template(template)
