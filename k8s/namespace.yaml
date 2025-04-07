@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: low-code-assistant
+  labels:
+    name: low-code-assistant
+    app: low-code-assistant

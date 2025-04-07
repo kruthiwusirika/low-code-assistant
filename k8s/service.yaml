@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: low-code-assistant
+  namespace: low-code-assistant
+  labels:
+    app: low-code-assistant
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8501"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8501
+    protocol: TCP
+    name: http
+  selector:
+    app: low-code-assistant
