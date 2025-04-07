@@ -1,30 +1,46 @@
-# Low-Code Assistant
+# LLM-Driven Coding Assistant
 
-![Low-Code Assistant Logo](https://img.shields.io/badge/Low--Code%20Assistant-v1.0-blue)
+![LLM Coding Assistant](https://img.shields.io/badge/LLM--Driven%20Coding%20Assistant-v2.0-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.22.0+-red)
 ![Python](https://img.shields.io/badge/Python-3.9+-green)
-![OpenAI](https://img.shields.io/badge/OpenAI-API-orange)
+![LLM Integration](https://img.shields.io/badge/LLM-API%20%26%20Local-orange)
+![Fine-Tuning](https://img.shields.io/badge/Fine--Tuning-GitHub%20Repos-purple)
 ![SQLite](https://img.shields.io/badge/SQLite-3-lightgrey)
 ![Docker](https://img.shields.io/badge/Docker-Ready-blue)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-Configured-blue)
 
-A powerful AI-powered code generation tool designed specifically for low-code teams. This application helps developers quickly generate, understand, and transform code using OpenAI's language models.
+A powerful web application that uses both API-based and open-source LLMs to provide coding assistance, auto-completions, and "explain code" functionalities. This application helps developers quickly generate, understand, and transform code using state-of-the-art language models.
 
-## 🚀 Features
+## 🚀 Key Features
 
-- **AI-Powered Code Generation**: Generate code snippets in multiple programming languages
-- **Multiple Programming Languages**: Support for Python, JavaScript, Java, C#, and more
-- **Customizable Output**: Control verbosity, comments, and error handling
-- **Secure API Key Management**: Your OpenAI API key is stored securely in your user profile
-- **Simple, Intuitive UI**: Built with Streamlit for a clean, responsive interface
-- **User Authentication System**: Secure login and registration with SQLite database
-- **Live Code Editor**: Edit code in real-time with syntax highlighting
-- **AI Code Suggestions**: Get AI-powered suggestions to improve your code
-- **Implement Suggestions**: Automatically apply AI-suggested improvements with one click
-- **Code Diff Views**: See side-by-side and diff comparisons of original vs. improved code
-- **Toast Notifications**: Real-time status updates appear in the top-right corner
-- **Containerized Deployment**: Docker and Kubernetes support for easy deployment
-- **Secure Database**: User data and API keys stored in SQLite with proper security measures
+### LLM Integration
+- **Multiple LLM Options**: Use either API-based models (OpenAI, Anthropic, Google) or locally hosted open-source models
+- **Code-Focused Models**: Integration with specialized code LLMs like CodeLlama
+- **Flexible Configuration**: Choose between different model sizes and capabilities based on your needs
+
+### Fine-Tuning
+- **GitHub Repository Training**: Fine-tune models on popular GitHub repositories for specific languages or frameworks
+- **Custom Model Creation**: Create specialized coding assistants for your tech stack
+- **Training Pipeline**: Complete workflow for model fine-tuning with minimal setup
+
+### Live Editor
+- **Real-time Suggestions**: Get code improvements as you type with auto-suggest
+- **Code Explanation**: Understand complex code with detailed explanations
+- **Syntax Highlighting**: Support for multiple programming languages
+- **Code Diff View**: See exactly what changes are being suggested
+- **One-Click Implementation**: Apply suggestions directly to your code
+
+### CI/CD & Deployment
+- **Docker Container**: Complete application containerization
+- **Kubernetes Manifests**: Production-ready K8s deployment configuration
+- **Helm Charts**: Easy deployment to cloud environments
+- **Cloud Provider Guides**: Detailed instructions for AWS EKS, GCP GKE, and Azure AKS
+
+### Additional Features
+- **User Authentication System**: Secure login and registration
+- **API Key Management**: Securely store and manage your API keys
+- **Toast Notifications**: Real-time status notifications
+- **Mobile-Friendly Interface**: Responsive design for all devices
 
 ## 🛠️ Tech Stack
 
@@ -69,9 +85,28 @@ A powerful AI-powered code generation tool designed specifically for low-code te
 
 ## 📋 Prerequisites
 
-- Python 3.8 or higher
-- OpenAI API key ([Get one here](https://platform.openai.com/account/api-keys))
-- Git (for cloning the repository)
+### Basic Requirements
+- Python 3.9 or higher
+- pip (Python package manager)
+
+### API Model Support
+- OpenAI API Key (or other supported provider keys)
+
+### Local Model Support (Optional)
+- PyTorch
+- Transformers
+- Enough RAM/VRAM to run local models
+
+### Fine-Tuning Support (Optional)
+- PyTorch
+- Transformers
+- Datasets
+- PEFT (Parameter-Efficient Fine-Tuning)
+- GitHub API Token (for higher rate limits)
+
+### Deployment
+- Docker for containerized deployment
+- Kubernetes for orchestration
 
 ## 🔧 Setup Options
 
@@ -128,10 +163,10 @@ Alternatively, you can add your API key through the application's User Account S
 streamlit run simple_app.py
 
 # Or run the full application
-streamlit run app/main.py
+streamlit run llm_coding_assistant.py
 ```
 
-The application will open in your browser at `http://localhost:8501`
+Visit `http://localhost:8501` in your web browser to access the application.
 
 ### Option 2: Docker Deployment
 
